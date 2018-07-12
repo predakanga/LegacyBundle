@@ -12,7 +12,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use TDW\LegacyBundle\Util;
 
-class LegacyRouteLoader implements ServiceSubscriberInterface, WarmableInterface {
+class LegacyRouteLoader implements ServiceSubscriberInterface, WarmableInterface
+{
     /**
      * @var RouterInterface
      */
@@ -30,30 +31,32 @@ class LegacyRouteLoader implements ServiceSubscriberInterface, WarmableInterface
      */
     protected $locator;
 
-    public function __construct(ContainerInterface $locator, RouterInterface $symfonyRouter, string $cacheDir, bool $isDebug) {
+    public function __construct(ContainerInterface $locator, RouterInterface $symfonyRouter, string $cacheDir, bool $isDebug)
+    {
         $this->locator = $locator;
         $this->symfonyRouter = $symfonyRouter;
         $this->cacheDir = $cacheDir;
         $this->isDebug = $isDebug;
     }
 
-    public function getRoutes(): array {
-        $cachePath = $this->cacheDir . DIRECTORY_SEPARATOR . 'legacy_routes.php';
+    public function getRoutes(): array
+    {
+        $cachePath = $this->cacheDir.DIRECTORY_SEPARATOR.'legacy_routes.php';
         $routeCache = new ConfigCache($cachePath, $this->isDebug);
 
-        if(!$routeCache->isFresh()) {
+        if (!$routeCache->isFresh()) {
             $symfonyRoutes = $this->symfonyRouter->getRouteCollection();
             $symfonyResources = $symfonyRoutes->getResources();
 
             $routeBatches = [];
-            foreach($symfonyResources as $resource) {
-                if($resource instanceof FileResource && strtolower(pathinfo($resource->getResource(), PATHINFO_EXTENSION)) === 'php') {
+            foreach ($symfonyResources as $resource) {
+                if ($resource instanceof FileResource && 'php' === strtolower(pathinfo($resource->getResource(), PATHINFO_EXTENSION))) {
                     $routeBatches[] = $this->loadRoutes($resource);
                 }
             }
 
             $routes = [];
-            if(\count($routeBatches)) {
+            if (\count($routeBatches)) {
                 $routes = array_merge(...$routeBatches);
             }
 
@@ -67,23 +70,24 @@ CODE;
         return require $cachePath;
     }
 
-    protected function loadRoutes(FileResource $resource): array {
+    protected function loadRoutes(FileResource $resource): array
+    {
         $toRet = [];
         /**
-         * @var CachedReader $reader
+         * @var CachedReader
          */
         $reader = $this->locator->get('annotation_reader');
-        foreach(Util::findClasses($resource->getResource()) as $fqcn) {
+        foreach (Util::findClasses($resource->getResource()) as $fqcn) {
             $reflClass = new \ReflectionClass($fqcn);
 
-            foreach($reflClass->getMethods() as $reflMethod) {
-                foreach($reader->getMethodAnnotations($reflMethod) as $annotation) {
-                    if($annotation instanceof LegacyRoute) {
+            foreach ($reflClass->getMethods() as $reflMethod) {
+                foreach ($reader->getMethodAnnotations($reflMethod) as $annotation) {
+                    if ($annotation instanceof LegacyRoute) {
                         /**
-                         * @var $symfonyRoute Route
+                         * @var Route
                          */
                         $symfonyRoute = $reader->getMethodAnnotation($reflMethod, Route::class);
-                        if(!$symfonyRoute || !$symfonyRoute->getName()) {
+                        if (!$symfonyRoute || !$symfonyRoute->getName()) {
                             throw new \LogicException('LegacyRoute annotation must only be used together with a named Route annotation');
                         }
                         $toRet[] = $this->createRoute($annotation, $symfonyRoute->getName());
@@ -95,21 +99,24 @@ CODE;
         return $toRet;
     }
 
-    protected function createRoute(LegacyRoute $annotation, string $routeName): array {
+    protected function createRoute(LegacyRoute $annotation, string $routeName): array
+    {
         return null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public static function getSubscribedServices(): array {
+    public static function getSubscribedServices(): array
+    {
         return ['annotation_reader'];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function warmUp($cacheDir) {
+    public function warmUp($cacheDir)
+    {
         // Temporarily override the main cache dir
         $origCacheDir = $this->cacheDir;
         $this->cacheDir = $cacheDir;
