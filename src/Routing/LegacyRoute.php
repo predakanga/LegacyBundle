@@ -11,4 +11,6 @@ use Doctrine\Common\Annotations\Annotation;
  */
 class LegacyRoute extends Annotation
 {
+    public $getVars = [];
+    public $postVars = [];
 }

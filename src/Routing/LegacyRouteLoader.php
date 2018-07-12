@@ -75,7 +75,7 @@ CODE;
 
     protected function loadRoutes(FileResource $resource): array
     {
-        $toRet = [];
+        $routes = [];
         /**
          * @var CachedReader
          */
@@ -87,24 +87,56 @@ CODE;
                 foreach ($reader->getMethodAnnotations($reflMethod) as $annotation) {
                     if ($annotation instanceof LegacyRoute) {
                         /**
-                         * @var Route
+                         * @var Route $symfonyRoute
                          */
                         $symfonyRoute = $reader->getMethodAnnotation($reflMethod, Route::class);
                         if (!$symfonyRoute || !$symfonyRoute->getName()) {
                             throw new \LogicException('LegacyRoute annotation must only be used together with a named Route annotation');
                         }
-                        $toRet[] = $this->createRoute($annotation, $symfonyRoute->getName());
+                        $routes[] = $this->createRoute($annotation, $symfonyRoute->getName());
                     }
                 }
             }
         }
 
-        return $toRet;
+        // Before returning them, group and sort the routes
+        $sortedRoutes = [];
+        foreach($routes as $route) {
+            if(!isset($sortedRoutes[$route['path']])) {
+                $sortedRoutes[$route['path']] = [];
+            }
+            $sortedRoutes[$route['path']][] = $route;
+        }
+        foreach(array_keys($sortedRoutes) as $path) {
+            usort($sortedRoutes[$path], function($routeA, $routeB) {
+                $countA = \count($routeA['get']) + \count($routeA['post']);
+                $countB = \count($routeB['get']) + \count($routeB['post']);
+
+                if ($countA === $countB) {
+                    return 0;
+                }
+
+                // N.B. Because we want largest first, the below comparison is flipped from the usual
+                if($countA < $countB) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            });
+        }
+
+        return $sortedRoutes;
     }
 
     protected function createRoute(LegacyRoute $annotation, string $routeName): array
     {
-        return null;
+        $url = $annotation->value;
+        $urlParts = parse_url($url);
+        $queryVars = [];
+        parse_str($urlParts['query'] ?? '', $queryVars);
+        $queryVars = array_merge($queryVars, $annotation->getVars ?? []);
+
+        return ['path' => $urlParts['path'], 'get' => $queryVars, 'post' => $annotation->postVars ?? [], '_route' => $routeName];
     }
 
     /**
@@ -128,6 +160,7 @@ CODE;
         try {
             $this->getRoutes();
         } finally {
+            // Before restoring the original cache dir
             $this->cacheDir = $origCacheDir;
         }
     }
