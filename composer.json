@@ -1,0 +1,29 @@
+{
+    "name": "tdw/legacy-bundle",
+    "description": "Provides helpers for wrapping legacy code in a Symfony application",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lachlan Pease",
+            "email": "predatory.kangaroo@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "doctrine/annotations": "^1.6",
+        "nikic/php-parser": "^4.0",
+        "symfony/config": "^4.1",
+        "symfony/dependency-injection": "^4.1",
+        "symfony/http-kernel": "^4.1",
+        "symfony/routing": "^4.1"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "TDW\\LegacyBundle\\": "src/"
+        }
+    }
+}

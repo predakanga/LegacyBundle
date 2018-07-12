@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services
+        http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="legacy.router" class="TDW\LegacyBundle\Routing\RouterDecorator" decorates="router">
+            <argument type="service" id="legacy.router.inner" />
+            <argument type="service" id="legacy.route_loader" />
+            <argument></argument><!-- Matching mode -->
+            <argument></argument><!-- Generating mode -->
+        </service>
+
+        <service id="legacy.route_loader" class="TDW\LegacyBundle\Routing\LegacyRouteLoader" autoconfigure="true" autowire="true">
+            <argument key="$symfonyRouter" type="service" id="legacy.router.inner" />
+            <argument key="$cacheDir">%kernel.cache_dir%</argument>
+            <argument key="$isDebug">%kernel.debug%</argument>
+        </service>
+    </services>
+</container>
