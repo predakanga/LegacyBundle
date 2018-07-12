@@ -12,7 +12,7 @@
             <argument></argument><!-- Generating mode -->
         </service>
 
-        <service id="legacy.route_loader" class="TDW\LegacyBundle\Routing\LegacyRouteLoader" autoconfigure="true" autowire="true">
+        <service id="legacy.route_loader" class="TDW\LegacyBundle\Routing\LegacyRouteLoader" autoconfigure="true" autowire="true" public="false">
             <argument key="$symfonyRouter" type="service" id="legacy.router.inner" />
             <argument key="$cacheDir">%kernel.cache_dir%</argument>
             <argument key="$isDebug">%kernel.debug%</argument>

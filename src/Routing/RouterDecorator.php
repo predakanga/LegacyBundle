@@ -3,13 +3,15 @@
 namespace TDW\LegacyBundle\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
+use Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 
-class RouterDecorator implements RouterInterface, RequestMatcherInterface
+class RouterDecorator implements RouterInterface, RequestMatcherInterface, WarmableInterface
 {
     /**
      * @var Router
@@ -57,5 +59,14 @@ class RouterDecorator implements RouterInterface, RequestMatcherInterface
     public function matchRequest(Request $request): array
     {
         return $this->decoratedRouter->matchRequest($request);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function warmUp($cacheDir) {
+        if($this->decoratedRouter instanceof WarmableInterface) {
+            $this->decoratedRouter->warmUp($cacheDir);
+        }
     }
 }

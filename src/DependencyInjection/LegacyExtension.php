@@ -15,7 +15,7 @@ class LegacyExtension extends ConfigurableExtension
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container)
     {
         if ($mergedConfig['router']['enabled']) {
-            $loader = new XmlFileLoader($container, new FileLocator('@LegacyBundle/Resources/config'));
+            $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
             $loader->load('services.xml');
 
             $definition = $container->getDefinition('legacy.router');

@@ -7,12 +7,12 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
-use Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface;
+use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use TDW\LegacyBundle\Util;
 
-class LegacyRouteLoader implements ServiceSubscriberInterface, WarmableInterface
+class LegacyRouteLoader implements ServiceSubscriberInterface, CacheWarmerInterface
 {
     /**
      * @var RouterInterface
@@ -115,7 +115,7 @@ CODE;
     /**
      * {@inheritdoc}
      */
-    public function warmUp($cacheDir)
+    public function warmUp($cacheDir): void
     {
         // Temporarily override the main cache dir
         $origCacheDir = $this->cacheDir;
@@ -127,5 +127,12 @@ CODE;
         } finally {
             $this->cacheDir = $origCacheDir;
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isOptional(): bool {
+        return true;
     }
 }
